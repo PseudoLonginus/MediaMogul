@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Mogul Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        #game-container {
+            display: flex;
+            flex-wrap: wrap;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #game-content {
+            flex: 2;
+            margin-right: 20px;
+        }
+        #chart-container {
+            flex: 1;
+            min-width: 300px;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e6f3ff;
+            border-radius: 5px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+        #media-assets, #financial-info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .asset, .info {
+            flex: 1 0 21%;
+            margin: 5px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+        #theory-insight, #historical-event, #media-trends {
+            font-style: italic;
+            margin-top: 10px;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="game-content">
+            <h1>Media Mogul Simulator</h1>
+            <div id="year-display" class="section"></div>
+            <div id="financial-info" class="section"></div>
+            <div id="media-assets" class="section"></div>
+            <div id="actions" class="section"></div>
+            <div id="events" class="section"></div>
+            <div id="theory-insight" class="section"></div>
+            <div id="historical-event" class="section"></div>
+            <div id="media-trends" class="section"></div>
+        </div>
+        <div id="chart-container">
+            <canvas id="mediaLandscapeChart"></canvas>
+            <canvas id="mediaPopularityChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let year = 1980;
+        let cash = 1000000;
+        let revenue = 0;
+        let influence = 0;
+        let mediaDiversity = 100;
+        
+        let assets = {
+            newspapers: 0,
+            magazines: 0,
+            radioStations: 0,
+            tvNetworks: 0,
+            cableNetworks: 0,
+            filmStudios: 0,
+            recordLabels: 0,
+            websites: 0,
+            socialMedia: 0,
+            streamingServices: 0
+        };
+
+        const assetPrices = {
+            newspapers: 500000,
+            magazines: 300000,
+            radioStations: 300000,
+            tvNetworks: 1000000,
+            cableNetworks: 800000,
+            filmStudios: 2000000,
+            recordLabels: 500000,
+            websites: 200000,
+            socialMedia: 800000,
+            streamingServices: 1500000
+        };
+
+        const assetRevenue = {
+            newspapers: 100000,
+            magazines: 80000,
+            radioStations: 80000,
+            tvNetworks: 300000,
+            cableNetworks: 250000,
+            filmStudios: 500000,
+            recordLabels: 150000,
+            websites: 50000,
+            socialMedia: 200000,
+            streamingServices: 400000
+        };
+
+        const assetInfluence = {
+            newspapers: 5,
+            magazines: 3,
+            radioStations: 3,
+            tvNetworks: 10,
+            cableNetworks: 8,
+            filmStudios: 7,
+            recordLabels: 4,
+            websites: 2,
+            socialMedia: 8,
+            streamingServices: 6
+        };
+
+        const theories = {
+            lowInfluence: [
+                "Selective Exposure Theory suggests that people tend to favor information which reinforces their pre-existing views. As a small media owner, your challenge is to break through these established preferences.",
+                "Limited Effects Theory proposes that people's pre-existing beliefs and interpersonal relationships limit media influence. Your current small media presence faces this challenge.",
+                "Two-Step Flow Theory suggests that information from media moves in two distinct stages, first to opinion leaders, then to the wider population. With your limited reach, focus on targeting these opinion leaders."
+            ],
+            mediumInfluence: [
+                "Agenda-Setting Theory proposes that your growing media empire allows you to influence what issues the public considers important.",
+                "Cultivation Theory suggests that long-term exposure to your media content shapes viewers' perceptions of reality.",
+                "Framing Theory examines how your media packaging and presentation of information influences audience interpretation.",
+                "Uses and Gratifications Theory focuses on how people actively choose and use your media to satisfy specific needs."
+            ],
+            highInfluence: [
+                "Media Concentration Theory suggests that as you've acquired more media assets, your influence has grown but media diversity has decreased.",
+                "The Political Economy of Media perspective examines how your economic decisions as a major media mogul influence media content and public discourse.",
+                "Gatekeeping Theory focuses on how you, as a powerful media owner, can filter information for dissemination, controlling what reaches the public.",
+                "Media Dependency Theory proposes that as people depend more on your vast media empire to meet their needs, your media becomes increasingly important to them."
+            ]
+        };
+
+        const sociologicalTerms = {
+            lowInfluence: [
+                "Media Literacy: The ability of your audience to access, analyze, evaluate, and create media in various forms.",
+                "Prosumer: As a small media owner, you're seeing the rise of individuals who both consume and produce media, blurring the line between the two roles.",
+                "Digital Divide: Your challenge is to bridge the gap between demographics that have access to modern ICT and those that don't."
+            ],
+            mediumInfluence: [
+                "Echo Chamber: As your influence grows, be aware of creating situations where beliefs are amplified or reinforced by communication inside closed systems.",
+                "Filter Bubble: Your growing media presence might create a state of intellectual isolation resulting from personalized searches and selective exposure to information.",
+                "Parasocial Interaction: Your audience is forming one-sided relationships with the personalities in your media properties."
+            ],
+            highInfluence: [
+                "Media Imperialism: Your vast media empire might be seen as dominating global media flow, influencing other cultures.",
+                "Mediatization: Society is increasingly submitting to or becoming dependent on your media empire.",
+                "Symbolic Annihilation: With your significant control over media, be aware of the absence or underrepresentation of some groups in your media content."
+            ]
+        };
+
+        const historicalEvents = {
+            1980: "CNN launches as the first 24-hour all-news television channel, revolutionizing news delivery.",
+            1985: "Capital Cities Communications acquires ABC for $3.5 billion, marking a major shift in media ownership.",
+            1989: "Time Inc. and Warner Communications merge to form Time Warner, creating a media conglomerate spanning magazines, TV, and film.",
+            1995: "The Internet becomes mainstream with the launch of Amazon and eBay, opening new avenues for e-commerce and digital media.",
+            1996: "The Telecommunications Act is passed in the US, leading to increased media consolidation and reshaping the media landscape.",
+            2000: "AOL and Time Warner announce their $165 billion merger, the largest in corporate history, symbolizing the convergence of old and new media.",
+            2002: "Napster shuts down, marking a pivotal moment in digital music distribution and copyright issues in the digital age.",
+            2004: "Facebook launches, beginning the era of social media dominance and changing how people connect and share information.",
+            2005: "YouTube is founded, revolutionizing video sharing and consumption, and creating a new platform for content creators.",
+            2006: "Google acquires YouTube for $1.65 billion, recognizing the growing importance of user-generated video content.",
+            2009: "Comcast announces its intent to buy NBC Universal, vertically integrating content production and distribution.",
+            2012: "Facebook acquires Instagram for $1 billion, consolidating its position in the social media landscape.",
+            2018: "Disney acquires 21st Century Fox for $71.3 billion, significantly altering the Hollywood landscape.",
+            2019: "Viacom and CBS merge to form ViacomCBS, reuniting two companies that split in 2006.",
+            2022: "Elon Musk acquires Twitter for $44 billion, promising to reshape the social media platform's policies and features."
+        };
+
+        const mediaTrends = {
+            1980: "Cable TV is growing rapidly, challenging traditional broadcast networks. This shift is fragmenting audiences and creating new content niches.",
+            1985: "Compact discs (CDs) are becoming popular, beginning to replace vinyl records and cassettes. This digital format is changing music consumption and distribution.",
+            1990: "The World Wide Web is invented, laying the groundwork for the internet boom. This will revolutionize information access and media distribution in the coming years.",
+            1995: "DVDs are introduced, offering higher quality video and audio than VHS tapes. This technology will soon dominate the home video market.",
+            2000: "Broadband internet is becoming more common, enabling faster web browsing and downloads. This is paving the way for streaming media and more interactive online experiences.",
+            2005: "Blogs and podcasts gain popularity, allowing individuals to become content creators. This democratization of media is challenging traditional gatekeepers.",
+            2010: "Smartphones and tablets are changing how people consume media on-the-go. Mobile-first content strategies are becoming crucial for media companies.",
+            2015: "Streaming services like Netflix and Spotify are disrupting traditional TV and music industries. Subscription models are becoming increasingly important.",
+            2020: "TikTok and short-form video content become increasingly popular, especially among younger audiences. This is changing content creation strategies across platforms."
+        };
+
+        const mediaLandscapeData = {
+            1980: {
+                "News Corp": 15,
+                "CBS": 20,
+                "ABC": 18,
+                "NBC": 22,
+                "Others": 25
+            },
+            1990: {
+                "News Corp": 18,
+                "Time Warner": 22,
+                "Disney": 15,
+                "Viacom": 12,
+                "Others": 33
+            },
+            2000: {
+                "News Corp": 15,
+                "Time Warner": 20,
+                "Disney": 18,
+                "Viacom": 15,
+                "Others": 32
+            },
+            2010: {
+                "News Corp": 12,
+                "Comcast": 18,
+                "Disney": 20,
+                "Time Warner": 15,
+                "Others": 35
+            },
+            2020: {
+                "Disney": 25,
+                "Comcast": 20,
+                "AT&T": 15,
+                "ViacomCBS": 10,
+                "Others": 30
+            }
+        };
+
+        const mediaPopularityData = {
+            1980: {
+                "TV": 70,
+                "Radio": 60,
+                "Newspapers": 50,
+                "Magazines": 40
+            },
+            1990: {
+                "TV": 75,
+                "Radio": 55,
+                "Newspapers": 45,
+                "Magazines": 35,
+                "Internet": 10
+            },
+            2000: {
+                "TV": 80,
+                "Radio": 50,
+                "Newspapers": 40,
+                "Magazines": 30,
+                "Internet": 30
+            },
+            2010: {
+                "TV": 75,
+                "Radio": 45,
+                "Newspapers": 30,
+                "Magazines": 25,
+                "Internet": 60,
+                "Social Media": 40
+            },
+            2020: {
+                "TV": 70,
+                "Radio": 40,
+                "Newspapers": 20,
+                "Magazines": 15,
+                "Internet": 80,
+                "Social Media": 70,
+                "Streaming": 65
+            }
+        };
+
+        let landscapeChart, popularityChart;
+
+        function updateDisplay() {
+            document.getElementById('year-display').innerHTML = `<h2>Year: ${year}</h2>`;
+            
+            document.getElementById('financial-info').innerHTML = `
+                <div class="info"><h3>Cash</h3>$${cash.toLocaleString()}</div>
+                <div class="info"><h3>Revenue</h3>$${revenue.toLocaleString()}/year</div>
+                <div class="info"><h3>Influence</h3>${influence.toFixed(1)}</div>
+                <div class="info"><h3>Media Diversity</h3>${mediaDiversity.toFixed(1)}%</div>
+            `;
+
+            let assetsHtml = '';
+            for (let asset in assets) {
+                if ((asset === 'websites' && year < 1995) || (asset === 'socialMedia' && year < 2004) || (asset === 'streamingServices' && year < 2007)) {
+                    continue;
+                }
+                assetsHtml += `
+                    <div class="asset">
+                        <h3>${asset.charAt(0).toUpperCase() + asset.slice(1)}</h3>
+                        Owned: ${assets[asset]}<br>
+                        Cost: $${assetPrices[asset].toLocaleString()}<br>
+                        Revenue: $${assetRevenue[asset].toLocaleString()}/year<br>
+                        <button onclick="buyAsset('${asset}')">Buy</button>
+                        <button onclick="sellAsset('${asset}')">Sell</button>
+                    </div>
+                `;
+            }
+            document.getElementById('media-assets').innerHTML = assetsHtml;
+
+            document.getElementById('actions').innerHTML = `
+                <button onclick="advanceYear()">Advance to Next Year</button>
+            `;
+
+            updateCharts();
+        }
+
+        function updateCharts() {
+            updateMediaLandscapeChart();
+            updateMediaPopularityChart();
+        }
+
+        function updateMediaLandscapeChart() {
+            const ctx = document.getElementById('mediaLandscapeChart').getContext('2d');
+            const closestYear = Object.keys(mediaLandscapeData).reduce((a, b) => {
+                return Math.abs(b - year) < Math.abs(a - year) ? b : a;
+            });
+            const data = mediaLandscapeData[closestYear];
+
+            if (landscapeChart) {
+                landscapeChart.data.labels = Object.keys(data);
+                landscapeChart.data.datasets[0].data = Object.values(data);
+                landscapeChart.update();
+            } else {
+                landscapeChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            data: Object.values(data),
+                            backgroundColor: [
+                                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                                '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        title: {
+                            display: true,
+                            text: `Media Landscape (${closestYear})`
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateMediaPopularityChart() {
+            const ctx = document.getElementById('mediaPopularityChart').getContext('2d');
+            const closestYear = Object.keys(mediaPopularityData).reduce((a, b) => {
+                return Math.abs(b - year) < Math.abs(a - year) ? b : a;
+            });
+            const data = mediaPopularityData[closestYear];
+
+            if (popularityChart) {
+                popularityChart.data.labels = Object.keys(data);
+                popularityChart.data.datasets[0].data = Object.values(data);
+                popularityChart.update();
+            } else {
+                popularityChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            label: 'Popularity',
+                            data: Object.values(data),
+                            backgroundColor: [
+                                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                                '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        title: {
+                            display: true,
+                            text: `Media Popularity (${closestYear})`
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function buyAsset(asset) {
+            if (cash >= assetPrices[asset]) {
+                cash -= assetPrices[asset];
+                assets[asset]++;
+                updateRevenue();
+                updateInfluence();
+                updateMediaDiversity();
+                updateDisplay();
+                showTheoryInsight();
+            } else {
+                alert("Not enough cash to buy this asset!");
+            }
+        }
+
+        function sellAsset(asset) {
+            if (assets[asset] > 0) {
+                cash += assetPrices[asset];
+                assets[asset]--;
+                updateRevenue();
+                updateInfluence();
+                updateMediaDiversity();
+                updateDisplay();
+                showTheoryInsight();
+            } else {
+                alert("You don't have any of this asset to sell!");
+            }
+        }
+
+        function updateRevenue() {
+            revenue = Object.keys(assets).reduce((total, asset) => {
+                return total + (assets[asset] * assetRevenue[asset]);
+            }, 0);
+        }
+
+        function updateInfluence() {
+            influence = Object.keys(assets).reduce((total, asset) => {
+                return total + (assets[asset] * assetInfluence[asset]);
+            }, 0);
+        }
+
+        function updateMediaDiversity() {
+            let totalAssets = Object.values(assets).reduce((a, b) => a + b, 0);
+            mediaDiversity = Math.max(0, 100 - (totalAssets * 2));
+        }
+
+        function advanceYear() {
+            year++;
+            cash += revenue;
+            updateDisplay();
+            checkForEvents();
+            showTheoryInsight();
+            showHistoricalEvent();
+            showMediaTrends();
+        }
+
+        function checkForEvents() {
+            if (year === 1995) {
+                document.getElementById('events').innerHTML = `
+                    <p>The internet is becoming mainstream. Websites are now available for purchase!</p>
+                `;
+            } else if (year === 2004) {
+                document.getElementById('events').innerHTML = `
+                    <p>Social media is on the rise. Social media platforms are now available for purchase.</p>
+                `;
+            } else if (year === 2007) {
+                document.getElementById('events').innerHTML = `
+                    <p>Smartphones are introduced! Streaming services are now available for purchase.</p>
+                `;
+            } else {
+                document.getElementById('events').innerHTML = '';
+            }
+        }
+
+        function showTheoryInsight() {
+            let theoryCategory, termCategory;
+            if (influence < 30) {
+                theoryCategory = 'lowInfluence';
+                termCategory = 'lowInfluence';
+            } else if (influence < 60) {
+                theoryCategory = 'mediumInfluence';
+                termCategory = 'mediumInfluence';
+            } else {
+                theoryCategory = 'highInfluence';
+                termCategory = 'highInfluence';
+            }
+
+            let theory = theories[theoryCategory][Math.floor(Math.random() * theories[theoryCategory].length)];
+            let term = sociologicalTerms[termCategory][Math.floor(Math.random() * sociologicalTerms[termCategory].length)];
+            
+            document.getElementById('theory-insight').innerHTML = `
+                <p><strong>Theory Insight:</strong> ${theory}</p>
+                <p><strong>Sociological Term:</strong> ${term}</p>
+            `;
+        }
+
+        function showHistoricalEvent() {
+            if (historicalEvents[year]) {
+                document.getElementById('historical-event').innerHTML = `
+                    <p><strong>Historical Event (${year}):</strong> ${historicalEvents[year]}</p>
+                `;
+            } else {
+                document.getElementById('historical-event').innerHTML = '';
+            }
+        }
+
+        function showMediaTrends() {
+            let closestYear = Object.keys(mediaTrends).reduce((a, b) => {
+                return Math.abs(b - year) < Math.abs(a - year) ? b : a;
+            });
+            document.getElementById('media-trends').innerHTML = `
+                <p><strong>Media Trend (${closestYear}):</strong> ${mediaTrends[closestYear]}</p>
+            `;
+        }
+
+        updateDisplay();
+        showTheoryInsight();
+        showHistoricalEvent();
+        showMediaTrends();
+    </script>
+</body>
+</html>
